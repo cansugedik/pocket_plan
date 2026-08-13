@@ -3,7 +3,16 @@ import 'package:flutter/material.dart';
 import 'summary_item.dart';
 
 class BalanceCard extends StatelessWidget {
-  const BalanceCard({super.key});
+  final double balance;
+  final double income;
+  final double expense;
+
+  const BalanceCard({
+    super.key,
+    required this.balance,
+    required this.income,
+    required this.expense,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +29,9 @@ class BalanceCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              '€1,250',
-              style: TextStyle(
+            Text(
+              '€${balance.toStringAsFixed(0)}',
+              style: const TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
               ),
@@ -30,15 +39,15 @@ class BalanceCard extends StatelessWidget {
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
+              children: [
                 SummaryItem(
                   title: 'Income',
-                  amount: '€2,100',
+                  amount: '€${income.toStringAsFixed(0)}',
                   icon: Icons.arrow_downward,
                 ),
                 SummaryItem(
                   title: 'Expenses',
-                  amount: '€850',
+                  amount: '€${expense.toStringAsFixed(0)}',
                   icon: Icons.arrow_upward,
                 ),
               ],

@@ -1,20 +1,53 @@
 import 'package:flutter/material.dart';
 
+import '../model/transaction.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/transaction_item.dart';
 
 class HomePage extends StatelessWidget {
+  static const List<Transaction> transactions = [
+    Transaction(
+      title: 'Groceries',
+      category: 'Food',
+      amount: 45,
+      icon: Icons.shopping_cart,
+      isIncome: false,
+    ),
+    Transaction(
+      title: 'Salary',
+      category: 'Income',
+      amount: 2100,
+      icon: Icons.account_balance_wallet,
+      isIncome: true,
+    ),
+    Transaction(
+      title: 'Transport',
+      category: 'Travel',
+      amount: 30,
+      icon: Icons.directions_bus,
+      isIncome: false,
+    ),
+  ];
+
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final totalIncome = transactions
+        .where((transaction) => transaction.isIncome)
+        .fold<double>(0, (sum, transaction) => sum + transaction.amount);
+
+    final totalExpense = transactions
+        .where((transaction) => !transaction.isIncome)
+        .fold<double>(0, (sum, transaction) => sum + transaction.amount);
+
+    final balance = totalIncome - totalExpense;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Pocket Plan',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: Padding(
@@ -22,38 +55,33 @@ class HomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const BalanceCard(),
+            BalanceCard(
+              balance: balance,
+              income: totalIncome,
+              expense: totalExpense,
+            ),
             const SizedBox(height: 24),
             const Text(
               'Recent Transactions',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
+
             Expanded(
-              child: ListView(
-                children: const [
-                  TransactionItem(
-                    title: 'Groceries',
-                    subtitle: 'Food',
-                    amount: '-€45',
-                    icon: Icons.shopping_cart,
-                  ),
-                  TransactionItem(
-                    title: 'Salary',
-                    subtitle: 'Income',
-                    amount: '+€2,100',
-                    icon: Icons.account_balance_wallet,
-                  ),
-                  TransactionItem(
-                    title: 'Transport',
-                    subtitle: 'Travel',
-                    amount: '-€30',
-                    icon: Icons.directions_bus,
-                  ),
-                ],
+              child: ListView.builder(
+                itemCount: transactions.length,
+                itemBuilder: (context, index) {
+                  final transaction = transactions[index];
+
+                  return TransactionItem(
+                    title: transaction.title,
+                    subtitle: transaction.category,
+                    amount: transaction.isIncome
+                        ? '+€${transaction.amount.toStringAsFixed(0)}'
+                        : '-€${transaction.amount.toStringAsFixed(0)}',
+                    icon: transaction.icon,
+                  );
+                },
               ),
             ),
           ],
