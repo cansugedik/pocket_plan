@@ -116,6 +116,26 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+
+Future<void> deleteTransaction(Transaction transaction) async {
+  setState(() {
+    transactions.remove(transaction);
+  });
+
+  final saved = await saveTransactions();
+
+  if (!mounted) return;
+
+  if (!saved) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Transaction could not be saved.'),
+      ),
+    );
+  }
+}
+
+
   @override
   Widget build(BuildContext context) {
     final totalIncome = transactions
@@ -171,6 +191,8 @@ class _HomePageState extends State<HomePage> {
                         final transaction = transactions[index];
 
                         return TransactionItem(
+                          transactionKey: ObjectKey(transaction),
+                          onDelete: () => deleteTransaction(transaction),
                           title: transaction.title,
                           subtitle: transaction.category,
                           amount: transaction.isIncome
