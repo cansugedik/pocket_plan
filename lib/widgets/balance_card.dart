@@ -22,23 +22,17 @@ class BalanceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Current Balance',
-              style: TextStyle(
-                fontSize: 16,
-              ),
-            ),
+            const Text('Current Balance', style: TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
             Text(
               '€${balance.toStringAsFixed(0)}',
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              spacing: 24,
+              runSpacing: 12,
               children: [
                 SummaryItem(
                   title: 'Income',
