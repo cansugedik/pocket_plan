@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pocket_plan/model/monthly_summary.dart';
 import 'package:pocket_plan/model/transaction.dart';
 import 'package:pocket_plan/screens/monthly_summary_page.dart';
@@ -20,6 +21,7 @@ Transaction expense(
 );
 
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
   final month = DateTime(2026, 10);
   final records = [
     expense('Food', 10.25, month),
@@ -86,20 +88,25 @@ void main() {
           home: MonthlySummaryPage(transactions: records, initialMonth: month),
         ),
       );
-      await tester.ensureVisible(find.text('Spending by category'));
+      await tester.scrollUntilVisible(find.text('Spending by category'), 200);
+      await tester.pumpAndSettle();
       expect(find.text('€60.00 · 75.0%'), findsOneWidget);
-      await tester.ensureVisible(find.byTooltip('Previous month'));
+      await tester.scrollUntilVisible(find.byTooltip('Previous month'), -250);
+      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Previous month'));
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Spending by category'));
+      await tester.scrollUntilVisible(find.text('Spending by category'), 200);
+      await tester.pumpAndSettle();
       expect(find.text('€30.00 · 100.0%'), findsOneWidget);
       expect(find.text('Travel'), findsNothing);
-      await tester.ensureVisible(find.byTooltip('Next month'));
-      await tester.tap(find.byTooltip('Next month'));
+      await tester.scrollUntilVisible(find.byTooltip('Next month'), -250);
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Next month'));
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Spending by category'));
+      await tester.tap(find.byTooltip('Next month'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Spending by category'), 200);
+      await tester.pumpAndSettle();
       expect(find.text('No expenses for this month.'), findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsNothing);
       await tester.pumpWidget(

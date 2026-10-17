@@ -19,6 +19,7 @@ Transaction entry(String title, double amount, bool income, DateTime? date) =>
     );
 
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
   final records = [
     entry('Pay', 100.75, true, DateTime(2026, 1, 1)),
     entry('Food', 40.25, false, DateTime(2026, 1, 31)),

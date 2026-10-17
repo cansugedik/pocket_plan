@@ -4,6 +4,7 @@ import '../model/monthly_summary.dart';
 import '../model/transaction.dart';
 import '../widgets/summary_item.dart';
 import '../widgets/category_spending_chart.dart';
+import '../widgets/monthly_budget_card.dart';
 
 class MonthlySummaryPage extends StatefulWidget {
   final List<Transaction> transactions;
@@ -113,6 +114,12 @@ class _MonthlySummaryPageState extends State<MonthlySummaryPage> {
                 ],
               ),
             ),
+          ),
+          const SizedBox(height: 16),
+          MonthlyBudgetCard(
+            key: ValueKey('${month.year}-${month.month}'),
+            month: month,
+            expenses: summary.expense,
           ),
           const SizedBox(height: 16),
           CategorySpendingChart(summary: summary),
