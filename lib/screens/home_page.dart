@@ -191,9 +191,7 @@ class _HomePageState extends State<HomePage> {
                             setState(() {
                               transactions[index] = Transaction(
                                 title: result['title'],
-                                category: result['isIncome']
-                                    ? 'Income'
-                                    : 'Expense',
+                                category: result['category'],
                                 amount: result['amount'],
                                 icon: result['isIncome']
                                     ? Icons.account_balance_wallet
@@ -207,7 +205,7 @@ class _HomePageState extends State<HomePage> {
                             if (!mounted) return;
 
                             if (!saved) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              ScaffoldMessenger.of(this.context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
                                     'Transaction could not be saved.',
@@ -248,7 +246,7 @@ class _HomePageState extends State<HomePage> {
                     0,
                     Transaction(
                       title: result['title'],
-                      category: result['isIncome'] ? 'Income' : 'Expense',
+                      category: result['category'],
                       amount: result['amount'],
                       icon: result['isIncome']
                           ? Icons.account_balance_wallet
@@ -263,7 +261,7 @@ class _HomePageState extends State<HomePage> {
                 if (!mounted) return;
 
                 if (!saved) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(this.context).showSnackBar(
                     const SnackBar(
                       content: Text('Transaction could not be saved.'),
                     ),
