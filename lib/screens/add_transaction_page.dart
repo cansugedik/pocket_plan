@@ -25,6 +25,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   bool isIncome = true;
   String selectedCategory = 'Other';
+  DateTime? selectedDate;
 
   List<String> get categories {
     final options = isIncome ? incomeCategories : expenseCategories;
@@ -54,6 +55,10 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     super.initState();
 
     final transaction = widget.transaction;
+    final now = DateTime.now();
+    selectedDate = transaction == null
+        ? DateTime(now.year, now.month, now.day)
+        : transaction.date;
 
     if (transaction != null) {
       titleController.text = transaction.title;
@@ -154,6 +159,35 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               },
             ),
 
+            const SizedBox(height: 16),
+
+            OutlinedButton.icon(
+              key: const ValueKey('transaction-date'),
+              icon: const Icon(Icons.calendar_today),
+              label: Text(
+                selectedDate == null
+                    ? 'Date: Not specified'
+                    : 'Date: ${MaterialLocalizations.of(context).formatMediumDate(selectedDate!)}',
+              ),
+              onPressed: () async {
+                final initial = selectedDate ?? DateTime.now();
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: initial,
+                  firstDate: DateTime(
+                    initial.year < 1900 ? initial.year : 1900,
+                  ),
+                  lastDate: DateTime(
+                    initial.year > 2100 ? initial.year : 2100,
+                    12,
+                    31,
+                  ),
+                );
+                if (!mounted || picked == null) return;
+                setState(() => selectedDate = picked);
+              },
+            ),
+
             const SizedBox(height: 24),
 
             SizedBox(
@@ -183,6 +217,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                     'amount': amount,
                     'isIncome': isIncome,
                     'category': selectedCategory,
+                    'date': selectedDate,
                   });
                 },
                 child: Text(

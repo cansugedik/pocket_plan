@@ -192,6 +192,7 @@ class _HomePageState extends State<HomePage> {
                               transactions[index] = Transaction(
                                 title: result['title'],
                                 category: result['category'],
+                                date: result['date'],
                                 amount: result['amount'],
                                 icon: result['isIncome']
                                     ? Icons.account_balance_wallet
@@ -217,6 +218,11 @@ class _HomePageState extends State<HomePage> {
 
                           title: transaction.title,
                           subtitle: transaction.category,
+                          dateLabel: transaction.date == null
+                              ? 'Date not specified'
+                              : MaterialLocalizations.of(
+                                  context,
+                                ).formatMediumDate(transaction.date!),
                           amount: transaction.isIncome
                               ? '+€${transaction.amount.toStringAsFixed(0)}'
                               : '-€${transaction.amount.toStringAsFixed(0)}',
@@ -247,6 +253,7 @@ class _HomePageState extends State<HomePage> {
                     Transaction(
                       title: result['title'],
                       category: result['category'],
+                      date: result['date'],
                       amount: result['amount'],
                       icon: result['isIncome']
                           ? Icons.account_balance_wallet

@@ -76,11 +76,76 @@ void main() {
     final saved = jsonDecode(prefs.getString('transactions')!) as List;
     expect(saved.single['category'], 'Gift');
     expect(saved.single['amount'], 150);
+    final today = DateTime.now().toIso8601String().split('T').first;
+    expect(saved.single['date'], today);
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpWidget(const PocketPlanApp());
     await tester.pumpAndSettle();
     expect(find.text('Gift'), findsOneWidget);
     expect(find.text('€150'), findsNWidgets(2));
+  });
+
+  test('Date-only JSON round trip and old records remain compatible', () {
+    final original = Transaction(
+      title: 'Dated',
+      category: 'Food',
+      amount: 10,
+      icon: Icons.shopping_cart,
+      isIncome: false,
+      date: DateTime(2026, 10, 15),
+    );
+    expect(original.toJson()['date'], '2026-10-15');
+    expect(
+      Transaction.fromJson(original.toJson()).date,
+      DateTime(2026, 10, 15),
+    );
+    final legacy = Map<String, dynamic>.from(original.toJson())..remove('date');
+    expect(Transaction.fromJson(legacy).date, isNull);
+  });
+
+  testWidgets('Date picker edits and persists a legacy transaction date', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      'transactions': jsonEncode([
+        {
+          'title': 'Old dated record',
+          'category': 'Food',
+          'amount': 10,
+          'isIncome': false,
+        },
+      ]),
+    });
+    await tester.pumpWidget(const PocketPlanApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Old dated record'));
+    await tester.pumpAndSettle();
+    expect(find.text('Date: Not specified'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('transaction-date')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Date: Not specified'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('transaction-date')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Update Transaction'));
+    await tester.tap(find.text('Update Transaction'));
+    await tester.pumpAndSettle();
+    final prefs = await SharedPreferences.getInstance();
+    final saved = jsonDecode(prefs.getString('transactions')!) as List;
+    expect(
+      saved.single['date'],
+      DateTime.now().toIso8601String().split('T').first,
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(const PocketPlanApp());
+    await tester.pumpAndSettle();
+    expect(find.text('Date not specified'), findsNothing);
+    await tester.tap(find.text('Old dated record'));
+    await tester.pumpAndSettle();
+    expect(find.text('Date: Not specified'), findsNothing);
   });
 
   for (final category in ['Income', 'Expense', 'Travel']) {
@@ -114,6 +179,8 @@ void main() {
       final saved = jsonDecode(prefs.getString('transactions')!) as List;
       expect(saved.single['category'], category);
       expect(saved.single['title'], 'Old record');
+      expect(saved.single.containsKey('date'), isFalse);
+      expect(find.text('Date not specified'), findsOneWidget);
     });
   }
 }

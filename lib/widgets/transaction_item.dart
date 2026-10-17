@@ -1,9 +1,9 @@
-
 import 'package:flutter/material.dart';
 
 class TransactionItem extends StatelessWidget {
   final String title;
   final String subtitle;
+  final String dateLabel;
   final String amount;
   final IconData icon;
   final VoidCallback onDelete;
@@ -14,6 +14,7 @@ class TransactionItem extends StatelessWidget {
     super.key,
     required this.title,
     required this.subtitle,
+    required this.dateLabel,
     required this.amount,
     required this.icon,
     required this.onDelete,
@@ -30,24 +31,25 @@ class TransactionItem extends StatelessWidget {
       // Silme onayı
       confirmDismiss: (direction) async {
         return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Delete Transaction'),
-            content: const Text(
-              'Are you sure you want to delete this transaction?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Delete Transaction'),
+                content: const Text(
+                  'Are you sure you want to delete this transaction?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Delete'),
+                  ),
+                ],
               ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Delete'),
-              ),
-            ],
-          ),
-        ) ?? false;
+            ) ??
+            false;
       },
 
       // Silme arka planı
@@ -59,10 +61,7 @@ class TransactionItem extends StatelessWidget {
           color: Colors.red,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Icon(
-          Icons.delete,
-          color: Colors.white,
-        ),
+        child: const Icon(Icons.delete, color: Colors.white),
       ),
 
       onDismissed: (direction) {
@@ -73,16 +72,16 @@ class TransactionItem extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         child: ListTile(
           onTap: onTap,
-          leading: CircleAvatar(
-            child: Icon(icon),
-          ),
+          leading: CircleAvatar(child: Icon(icon)),
           title: Text(title),
-          subtitle: Text(subtitle),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [Text(subtitle), Text(dateLabel)],
+          ),
+          isThreeLine: true,
           trailing: Text(
             amount,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
       ),

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class Transaction {
@@ -7,6 +6,7 @@ class Transaction {
   final double amount;
   final IconData icon;
   final bool isIncome;
+  final DateTime? date;
 
   const Transaction({
     required this.title,
@@ -14,6 +14,7 @@ class Transaction {
     required this.amount,
     required this.icon,
     required this.isIncome,
+    this.date,
   });
 
   // İşlemi JSON formatına dönüştürür.
@@ -24,6 +25,7 @@ class Transaction {
       'amount': amount,
       'icon': icon.codePoint,
       'isIncome': isIncome,
+      if (date != null) 'date': date!.toIso8601String().split('T').first,
     };
   }
 
@@ -35,10 +37,9 @@ class Transaction {
       title: json['title'] as String,
       category: json['category'] as String,
       amount: (json['amount'] as num).toDouble(),
-      icon: isIncome
-          ? Icons.account_balance_wallet
-          : Icons.shopping_cart,
+      icon: isIncome ? Icons.account_balance_wallet : Icons.shopping_cart,
       isIncome: isIncome,
+      date: DateTime.tryParse(json['date'] as String? ?? ''),
     );
   }
 }
