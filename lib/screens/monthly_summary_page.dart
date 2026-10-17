@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../model/monthly_summary.dart';
 import '../model/transaction.dart';
 import '../widgets/summary_item.dart';
+import '../widgets/category_spending_chart.dart';
 
 class MonthlySummaryPage extends StatefulWidget {
   final List<Transaction> transactions;
@@ -102,7 +103,9 @@ class _MonthlySummaryPageState extends State<MonthlySummaryPage> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  Text('${summary.transactionCount} transactions'),
+                  Text(
+                    '${summary.transactionCount} ${summary.transactionCount == 1 ? 'transaction' : 'transactions'}',
+                  ),
                   if (summary.transactionCount == 0) ...[
                     const SizedBox(height: 8),
                     const Text('No dated transactions for this month.'),
@@ -111,6 +114,8 @@ class _MonthlySummaryPageState extends State<MonthlySummaryPage> {
               ),
             ),
           ),
+          const SizedBox(height: 16),
+          CategorySpendingChart(summary: summary),
           const SizedBox(height: 16),
           const Text(
             'This summary includes all categories and transaction types for the selected month.',
