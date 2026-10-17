@@ -172,8 +172,8 @@ class _HomePageState extends State<HomePage> {
                           transactionKey: ObjectKey(transaction),
                           onDelete: () => deleteTransaction(transaction),
 
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => AddTransactionPage(
@@ -181,6 +181,40 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             );
+
+                            if (!mounted || result == null) return;
+
+                            final index = transactions.indexOf(transaction);
+
+                            if (index == -1) return;
+
+                            setState(() {
+                              transactions[index] = Transaction(
+                                title: result['title'],
+                                category: result['isIncome']
+                                    ? 'Income'
+                                    : 'Expense',
+                                amount: result['amount'],
+                                icon: result['isIncome']
+                                    ? Icons.account_balance_wallet
+                                    : Icons.shopping_cart,
+                                isIncome: result['isIncome'],
+                              );
+                            });
+
+                            final saved = await saveTransactions();
+
+                            if (!mounted) return;
+
+                            if (!saved) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Transaction could not be saved.',
+                                  ),
+                                ),
+                              );
+                            }
                           },
 
                           title: transaction.title,
