@@ -7,6 +7,7 @@ class TransactionItem extends StatelessWidget {
   final String amount;
   final IconData icon;
   final VoidCallback onDelete;
+  final VoidCallback onTap;
   final Key transactionKey;
 
   const TransactionItem({
@@ -16,6 +17,7 @@ class TransactionItem extends StatelessWidget {
     required this.amount,
     required this.icon,
     required this.onDelete,
+    required this.onTap,
     required this.transactionKey,
   });
 
@@ -70,6 +72,7 @@ class TransactionItem extends StatelessWidget {
       child: Card(
         margin: const EdgeInsets.only(bottom: 10),
         child: ListTile(
+          onTap: onTap,
           leading: CircleAvatar(
             child: Icon(icon),
           ),

@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -41,9 +40,8 @@ class _HomePageState extends State<HomePage> {
 
         loadedTransactions = decoded
             .map(
-              (item) => Transaction.fromJson(
-                Map<String, dynamic>.from(item as Map),
-              ),
+              (item) =>
+                  Transaction.fromJson(Map<String, dynamic>.from(item as Map)),
             )
             .toList();
       } else {
@@ -74,9 +72,7 @@ class _HomePageState extends State<HomePage> {
 
         await prefs.setString(
           storageKey,
-          jsonEncode(
-            loadedTransactions.map((t) => t.toJson()).toList(),
-          ),
+          jsonEncode(loadedTransactions.map((t) => t.toJson()).toList()),
         );
       }
 
@@ -106,51 +102,38 @@ class _HomePageState extends State<HomePage> {
           .map((transaction) => transaction.toJson())
           .toList();
 
-      return await prefs.setString(
-        storageKey,
-        jsonEncode(data),
-      );
+      return await prefs.setString(storageKey, jsonEncode(data));
     } catch (error) {
       debugPrint('Error saving transactions: $error');
       return false;
     }
   }
 
+  Future<void> deleteTransaction(Transaction transaction) async {
+    setState(() {
+      transactions.remove(transaction);
+    });
 
-Future<void> deleteTransaction(Transaction transaction) async {
-  setState(() {
-    transactions.remove(transaction);
-  });
+    final saved = await saveTransactions();
 
-  final saved = await saveTransactions();
+    if (!mounted) return;
 
-  if (!mounted) return;
-
-  if (!saved) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Transaction could not be saved.'),
-      ),
-    );
+    if (!saved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Transaction could not be saved.')),
+      );
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
     final totalIncome = transactions
         .where((transaction) => transaction.isIncome)
-        .fold<double>(
-          0,
-          (sum, transaction) => sum + transaction.amount,
-        );
+        .fold<double>(0, (sum, transaction) => sum + transaction.amount);
 
     final totalExpense = transactions
         .where((transaction) => !transaction.isIncome)
-        .fold<double>(
-          0,
-          (sum, transaction) => sum + transaction.amount,
-        );
+        .fold<double>(0, (sum, transaction) => sum + transaction.amount);
 
     final balance = totalIncome - totalExpense;
 
@@ -162,9 +145,7 @@ Future<void> deleteTransaction(Transaction transaction) async {
         ),
       ),
       body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
+          ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -178,10 +159,7 @@ Future<void> deleteTransaction(Transaction transaction) async {
                   const SizedBox(height: 24),
                   const Text(
                     'Recent Transactions',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   Expanded(
@@ -193,6 +171,18 @@ Future<void> deleteTransaction(Transaction transaction) async {
                         return TransactionItem(
                           transactionKey: ObjectKey(transaction),
                           onDelete: () => deleteTransaction(transaction),
+
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddTransactionPage(
+                                  transaction: transaction,
+                                ),
+                              ),
+                            );
+                          },
+
                           title: transaction.title,
                           subtitle: transaction.category,
                           amount: transaction.isIncome
@@ -213,8 +203,7 @@ Future<void> deleteTransaction(Transaction transaction) async {
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        const AddTransactionPage(),
+                    builder: (context) => const AddTransactionPage(),
                   ),
                 );
 
@@ -225,9 +214,7 @@ Future<void> deleteTransaction(Transaction transaction) async {
                     0,
                     Transaction(
                       title: result['title'],
-                      category: result['isIncome']
-                          ? 'Income'
-                          : 'Expense',
+                      category: result['isIncome'] ? 'Income' : 'Expense',
                       amount: result['amount'],
                       icon: result['isIncome']
                           ? Icons.account_balance_wallet
@@ -244,9 +231,7 @@ Future<void> deleteTransaction(Transaction transaction) async {
                 if (!saved) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text(
-                        'Transaction could not be saved.',
-                      ),
+                      content: Text('Transaction could not be saved.'),
                     ),
                   );
                 }
