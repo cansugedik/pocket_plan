@@ -15,6 +15,7 @@ class SummaryItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon),
         const SizedBox(width: 8),
@@ -22,12 +23,7 @@ class SummaryItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title),
-            Text(
-              amount,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text(amount, style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
       ],

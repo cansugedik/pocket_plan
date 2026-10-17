@@ -8,6 +8,7 @@ import '../utils/transaction_sort.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/transaction_item.dart';
 import 'add_transaction_page.dart';
+import 'monthly_summary_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -280,6 +281,26 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          IconButton(
+            tooltip: 'Monthly summary',
+            onPressed: isLoading
+                ? null
+                : () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MonthlySummaryPage(
+                        transactions: List.unmodifiable(transactions),
+                        initialMonth:
+                            monthFilter != null && monthFilter != 'undated'
+                            ? DateTime.parse('$monthFilter-01')
+                            : null,
+                      ),
+                    ),
+                  ),
+            icon: const Icon(Icons.calendar_month),
+          ),
+        ],
         title: const Text(
           'Pocket Plan',
           style: TextStyle(fontWeight: FontWeight.bold),
