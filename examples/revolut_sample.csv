@@ -1,0 +1,4 @@
+Type,Product,Started Date,Completed Date,Description,Amount,Fee,Currency,State,Balance
+Card Payment,Current,2026-10-14 09:00:00,2026-10-15 09:00:00,Tallinja bus,-2.00,0.00,EUR,COMPLETED,98.00
+Card Payment,Current,2026-10-15 10:00:00,2026-10-16 10:00:00,Lidl supermarket,-12.50,0.00,EUR,COMPLETED,85.50
+Card Payment,Current,2026-10-16 11:00:00,2026-10-17 11:00:00,Sample shopping,-20.00,0.00,EUR,COMPLETED,65.50

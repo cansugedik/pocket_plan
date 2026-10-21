@@ -7,6 +7,7 @@ class Transaction {
   final IconData icon;
   final bool isIncome;
   final DateTime? date;
+  final String? importId;
 
   const Transaction({
     required this.title,
@@ -15,11 +16,13 @@ class Transaction {
     required this.icon,
     required this.isIncome,
     this.date,
+    this.importId,
   });
 
   // İşlemi JSON formatına dönüştürür.
   Map<String, dynamic> toJson() {
     return {
+      if (importId != null) 'importId': importId,
       'title': title,
       'category': category,
       'amount': amount,
@@ -34,6 +37,7 @@ class Transaction {
     final isIncome = json['isIncome'] as bool;
 
     return Transaction(
+      importId: json['importId'] as String?,
       title: json['title'] as String,
       category: json['category'] as String,
       amount: (json['amount'] as num).toDouble(),

@@ -6,7 +6,8 @@ class TransactionItem extends StatelessWidget {
   final String dateLabel;
   final String amount;
   final IconData icon;
-  final VoidCallback onDelete;
+  final Future<bool> Function() onDelete;
+  final bool enabled;
   final VoidCallback onTap;
   final Key transactionKey;
 
@@ -18,6 +19,7 @@ class TransactionItem extends StatelessWidget {
     required this.amount,
     required this.icon,
     required this.onDelete,
+    this.enabled = true,
     required this.onTap,
     required this.transactionKey,
   });
@@ -26,11 +28,13 @@ class TransactionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dismissible(
       key: transactionKey,
-      direction: DismissDirection.endToStart,
+      direction: enabled ? DismissDirection.endToStart : DismissDirection.none,
 
       // Silme onayı
       confirmDismiss: (direction) async {
-        return await showDialog<bool>(
+        if (!enabled) return false;
+        final confirmed =
+            await showDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(
                 title: const Text('Delete Transaction'),
@@ -50,6 +54,8 @@ class TransactionItem extends StatelessWidget {
               ),
             ) ??
             false;
+        if (!context.mounted || !confirmed) return false;
+        return onDelete();
       },
 
       // Silme arka planı
@@ -64,14 +70,10 @@ class TransactionItem extends StatelessWidget {
         child: const Icon(Icons.delete, color: Colors.white),
       ),
 
-      onDismissed: (direction) {
-        onDelete();
-      },
-
       child: Card(
         margin: const EdgeInsets.only(bottom: 10),
         child: ListTile(
-          onTap: onTap,
+          onTap: enabled ? onTap : null,
           leading: CircleAvatar(child: Icon(icon)),
           title: Text(title),
           subtitle: Column(

@@ -1,7 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../services/transaction_store.dart';
 
 import '../model/transaction.dart';
 import '../utils/transaction_sort.dart';
@@ -11,19 +9,26 @@ import '../widgets/balance_card.dart';
 import '../widgets/transaction_item.dart';
 import 'add_transaction_page.dart';
 import 'monthly_summary_page.dart';
+import 'csv_import_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final TransactionStore? store;
+  const HomePage({super.key, this.store});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  static const String storageKey = 'transactions';
+  late final TransactionStore store;
+  bool isSaving = false;
+  bool writesBlocked = false;
+
+  bool get canWrite => !isLoading && !loadFailed && !writesBlocked && !isSaving;
 
   List<Transaction> transactions = [];
   bool isLoading = true;
+  bool loadFailed = false;
   final searchController = TextEditingController();
   String searchQuery = '';
 
@@ -162,105 +167,118 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    store = widget.store ?? TransactionStore();
     loadTransactions();
   }
 
-  // Kaydedilmiş işlemleri yükler.
+  // Existing data is never replaced with defaults after a failed load.
   Future<void> loadTransactions() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedData = prefs.getString(storageKey);
-
-      List<Transaction> loadedTransactions;
-
-      if (savedData != null) {
-        final List<dynamic> decoded = jsonDecode(savedData);
-
-        loadedTransactions = decoded
-            .map(
-              (item) =>
-                  Transaction.fromJson(Map<String, dynamic>.from(item as Map)),
-            )
-            .toList();
-      } else {
-        // Uygulama ilk kez açıldığında örnek işlemler.
-        loadedTransactions = [
-          const Transaction(
-            title: 'Groceries',
-            category: 'Food',
-            amount: 45,
-            icon: Icons.shopping_cart,
-            isIncome: false,
-          ),
-          const Transaction(
-            title: 'Salary',
-            category: 'Income',
-            amount: 2100,
-            icon: Icons.account_balance_wallet,
-            isIncome: true,
-          ),
-          const Transaction(
-            title: 'Transport',
-            category: 'Travel',
-            amount: 30,
-            icon: Icons.directions_bus,
-            isIncome: false,
-          ),
-        ];
-
-        await prefs.setString(
-          storageKey,
-          jsonEncode(loadedTransactions.map((t) => t.toJson()).toList()),
-        );
-      }
-
-      if (!mounted) return;
-
-      setState(() {
-        transactions = loadedTransactions;
-        isLoading = false;
-      });
-    } catch (error) {
-      debugPrint('Error loading transactions: $error');
-
-      if (!mounted) return;
-
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  // İşlemleri kalıcı olarak kaydeder.
-  Future<bool> saveTransactions() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-
-      final data = transactions
-          .map((transaction) => transaction.toJson())
-          .toList();
-
-      return await prefs.setString(storageKey, jsonEncode(data));
-    } catch (error) {
-      debugPrint('Error saving transactions: $error');
-      return false;
-    }
-  }
-
-  Future<void> deleteTransaction(Transaction transaction) async {
+    if (isSaving) return;
     setState(() {
-      transactions.remove(transaction);
+      isLoading = true;
+      loadFailed = false;
     });
+    try {
+      final initial = [
+        const Transaction(
+          title: 'Groceries',
+          category: 'Food',
+          amount: 45,
+          icon: Icons.shopping_cart,
+          isIncome: false,
+        ),
+        const Transaction(
+          title: 'Salary',
+          category: 'Income',
+          amount: 2100,
+          icon: Icons.account_balance_wallet,
+          isIncome: true,
+        ),
+        const Transaction(
+          title: 'Transport',
+          category: 'Travel',
+          amount: 30,
+          icon: Icons.directions_bus,
+          isIncome: false,
+        ),
+      ];
+      final loaded = await store.load(initialTransactions: initial);
+      if (!mounted) return;
+      setState(() {
+        transactions = loaded;
+        isLoading = false;
+        writesBlocked = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+        loadFailed = true;
+        writesBlocked = true;
+      });
+    }
+  }
 
-    final saved = await saveTransactions();
-
-    if (!mounted) return;
-
+  Future<bool> saveTransactions(List<Transaction> candidates) async {
+    if (!canWrite) return false;
+    setState(() => isSaving = true);
+    final saved = await store.save(candidates);
+    if (!mounted) return saved;
+    setState(() {
+      isSaving = false;
+      if (saved) {
+        transactions = candidates;
+      } else {
+        writesBlocked = true;
+      }
+    });
     if (!saved) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Transaction could not be saved.')),
+        const SnackBar(
+          content: Text(
+            'Changes could not be saved. Previous transactions are still shown. Reload before trying again.',
+          ),
+        ),
       );
     }
+    return saved;
+  }
+
+  Future<bool> deleteTransaction(Transaction transaction) async {
+    if (!canWrite) return false;
+    final candidates = List<Transaction>.of(transactions)..remove(transaction);
+    // The row is removed after persistence; Dismissible must not animate an already removed row.
+    await saveTransactions(candidates);
+    return false;
+  }
+
+  Future<void> openCsvImport() async {
+    if (!canWrite) return;
+    final result = await Navigator.push<int>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CsvImportPage(
+          existing: List.unmodifiable(transactions),
+          onImport: (incoming) async {
+            if (!canWrite) return false;
+            final ids = transactions
+                .map((t) => t.importId)
+                .whereType<String>()
+                .toSet();
+            if (incoming.any(
+              (t) => t.importId == null || !ids.add(t.importId!),
+            )) {
+              return false;
+            }
+            return saveTransactions([...incoming, ...transactions]);
+          },
+        ),
+      ),
+    );
+    if (!mounted || result == null) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$result transactions imported.')));
   }
 
   @override
@@ -297,6 +315,11 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         actions: [
           IconButton(
+            tooltip: 'Import CSV',
+            onPressed: canWrite ? openCsvImport : null,
+            icon: const Icon(Icons.upload_file),
+          ),
+          IconButton(
             tooltip: 'Monthly summary',
             onPressed: isLoading
                 ? null
@@ -322,6 +345,24 @@ class _HomePageState extends State<HomePage> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
+          : loadFailed
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Transactions could not be loaded. Your saved data has not been replaced.',
+                    ),
+                    TextButton(
+                      onPressed: loadTransactions,
+                      child: const Text('Retry loading'),
+                    ),
+                  ],
+                ),
+              ),
+            )
           : Padding(
               padding: const EdgeInsets.all(16),
               child: NestedScrollView(
@@ -330,6 +371,19 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (writesBlocked)
+                          MaterialBanner(
+                            content: const Text(
+                              'Saving is paused to protect your data. Reload transactions to continue.',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: loadTransactions,
+                                child: const Text('Reload transactions'),
+                              ),
+                            ],
+                          ),
+                        if (isSaving) const LinearProgressIndicator(),
                         if (MediaQuery.viewInsetsOf(context).bottom == 0) ...[
                           BalanceCard(
                             balance: balance,
@@ -472,8 +526,10 @@ class _HomePageState extends State<HomePage> {
                           return TransactionItem(
                             transactionKey: ObjectKey(transaction),
                             onDelete: () => deleteTransaction(transaction),
+                            enabled: canWrite,
 
                             onTap: () async {
+                              if (!canWrite) return;
                               final result = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -489,32 +545,21 @@ class _HomePageState extends State<HomePage> {
 
                               if (index == -1) return;
 
-                              setState(() {
-                                transactions[index] = Transaction(
-                                  title: result['title'],
-                                  category: result['category'],
-                                  date: result['date'],
-                                  amount: result['amount'],
-                                  icon: result['isIncome']
-                                      ? Icons.account_balance_wallet
-                                      : Icons.shopping_cart,
-                                  isIncome: result['isIncome'],
-                                );
-                              });
-
-                              final saved = await saveTransactions();
-
-                              if (!mounted) return;
-
-                              if (!saved) {
-                                ScaffoldMessenger.of(this.context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Transaction could not be saved.',
-                                    ),
-                                  ),
-                                );
-                              }
+                              final candidates = List<Transaction>.of(
+                                transactions,
+                              );
+                              candidates[index] = Transaction(
+                                importId: transaction.importId,
+                                title: result['title'],
+                                category: result['category'],
+                                date: result['date'],
+                                amount: result['amount'],
+                                icon: result['isIncome']
+                                    ? Icons.account_balance_wallet
+                                    : Icons.shopping_cart,
+                                isIncome: result['isIncome'],
+                              );
+                              await saveTransactions(candidates);
                             },
 
                             title: transaction.title,
@@ -534,7 +579,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: isLoading
+        onPressed: !canWrite
             ? null
             : () async {
                 final result = await Navigator.push(
@@ -546,33 +591,19 @@ class _HomePageState extends State<HomePage> {
 
                 if (!mounted || result == null) return;
 
-                setState(() {
-                  transactions.insert(
-                    0,
-                    Transaction(
-                      title: result['title'],
-                      category: result['category'],
-                      date: result['date'],
-                      amount: result['amount'],
-                      icon: result['isIncome']
-                          ? Icons.account_balance_wallet
-                          : Icons.shopping_cart,
-                      isIncome: result['isIncome'],
-                    ),
-                  );
-                });
-
-                final saved = await saveTransactions();
-
-                if (!mounted) return;
-
-                if (!saved) {
-                  ScaffoldMessenger.of(this.context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Transaction could not be saved.'),
-                    ),
-                  );
-                }
+                await saveTransactions([
+                  Transaction(
+                    title: result['title'],
+                    category: result['category'],
+                    date: result['date'],
+                    amount: result['amount'],
+                    icon: result['isIncome']
+                        ? Icons.account_balance_wallet
+                        : Icons.shopping_cart,
+                    isIncome: result['isIncome'],
+                  ),
+                  ...transactions,
+                ]);
               },
         child: const Icon(Icons.add),
       ),
