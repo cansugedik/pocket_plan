@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../model/transaction.dart';
+import 'backup_restore_service.dart';
 
 abstract class TransactionStorage {
   Future<String?> read();
@@ -13,18 +14,18 @@ class PreferencesTransactionStorage implements TransactionStorage {
   static const key = 'transactions';
 
   @override
-  Future<String?> read() async {
+  Future<String?> read() => RestoreAccess.guarded(() async {
     final prefs = await SharedPreferences.getInstance();
     // A failed legacy preferences write can still update its memory cache.
     await prefs.reload();
     return prefs.getString(key);
-  }
+  });
 
   @override
-  Future<bool> write(String value) async {
+  Future<bool> write(String value) => RestoreAccess.guarded(() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.setString(key, value);
-  }
+  });
 }
 
 /// Keeps the existing JSON format; refuses writes until a complete load succeeds.

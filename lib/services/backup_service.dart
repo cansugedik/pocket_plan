@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 import '../model/app_backup.dart';
+import 'backup_restore_service.dart';
 
 abstract class BackupSource {
   Future<Map<String, Object?>> read();
@@ -13,7 +14,7 @@ abstract class BackupSource {
 
 class PreferencesBackupSource implements BackupSource {
   @override
-  Future<Map<String, Object?>> read() async {
+  Future<Map<String, Object?>> read() => RestoreAccess.guarded(() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.reload();
     return {
@@ -21,7 +22,7 @@ class PreferencesBackupSource implements BackupSource {
         if (key == 'transactions' || key.startsWith('monthly_budget_'))
           key: prefs.get(key),
     };
-  }
+  });
 }
 
 class BackupService {

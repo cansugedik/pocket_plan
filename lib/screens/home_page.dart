@@ -318,10 +318,33 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             tooltip: 'Export backup',
             onPressed: canWrite
-                ? () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const BackupPage()),
-                  )
+                ? () async {
+                    final restored = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(builder: (_) => const BackupPage()),
+                    );
+                    if (!mounted) return;
+                    await loadTransactions();
+                    if (restored == true && mounted) {
+                      setState(() {
+                        searchController.clear();
+                        searchQuery = '';
+                        typeFilter = 'all';
+                        categoryFilter = null;
+                        monthFilter = null;
+                        searchDate = null;
+                      });
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Backup restored. Transactions and budgets have been replaced.',
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  }
                 : null,
             icon: const Icon(Icons.save_alt),
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../model/app_backup.dart';
 import '../services/backup_service.dart';
+import 'restore_backup_page.dart';
 
 class BackupPage extends StatefulWidget {
   final BackupService? service;
@@ -80,7 +81,7 @@ class _BackupPageState extends State<BackupPage> {
             ),
             const SizedBox(height: 16),
             const Text(
-              'The JSON file is not encrypted and contains financial information. Keep it in a trusted location. Restoring backups is not available yet.',
+              'The JSON file is not encrypted and contains financial information. Keep it in a trusted location.',
             ),
             const SizedBox(height: 24),
             OutlinedButton(
@@ -109,6 +110,26 @@ class _BackupPageState extends State<BackupPage> {
                 ),
               ),
             ],
+            const Divider(height: 40),
+            OutlinedButton.icon(
+              onPressed: busy
+                  ? null
+                  : () async {
+                      final restored = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const RestoreBackupPage(),
+                        ),
+                      );
+                      if (!mounted) return;
+                      setState(() => backup = null);
+                      if (restored == true && context.mounted) {
+                        Navigator.pop(context, true);
+                      }
+                    },
+              icon: const Icon(Icons.restore),
+              label: const Text('Restore from JSON'),
+            ),
             if (message != null)
               Padding(
                 padding: const EdgeInsets.only(top: 16),

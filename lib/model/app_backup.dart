@@ -69,6 +69,37 @@ class AppBackup {
     );
   }
 
+  /// Accept only our complete version-1 envelope; never partially import a file.
+  factory AppBackup.parse(String contents) {
+    if (utf8.encode(contents).length > 5 * 1024 * 1024) {
+      throw const FormatException('Backup exceeds 5 MB');
+    }
+    final json = jsonDecode(contents);
+    if (json is! Map<String, dynamic> ||
+        json['format'] != 'pocket-plan-backup' ||
+        json['version'] is! int ||
+        json['version'] != 1 ||
+        json['currency'] != 'EUR' ||
+        json['createdAt'] is! String ||
+        json['transactions'] is! List ||
+        json['monthlyBudgetsCents'] is! Map ||
+        (json['transactions'] as List).length > 10000) {
+      throw const FormatException('Unsupported backup');
+    }
+    final created = DateTime.tryParse(json['createdAt'] as String);
+    if (created == null) throw const FormatException('Invalid backup date');
+    final budgets = Map<String, Object?>.from(
+      json['monthlyBudgetsCents'] as Map,
+    );
+    if (budgets.keys.any((key) => !key.startsWith('monthly_budget_'))) {
+      throw const FormatException('Invalid budget key');
+    }
+    return AppBackup.fromStoredValues({
+      'transactions': jsonEncode(json['transactions']),
+      ...budgets,
+    }, created);
+  }
+
   String get fileName =>
       'pocket-plan-backup-${createdAt.toIso8601String().replaceAll(':', '-')}.json';
 }

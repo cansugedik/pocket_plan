@@ -1,22 +1,25 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'backup_restore_service.dart';
 
 /// Budgets are stored in cents, separately from transaction data.
 class MonthlyBudgetStore {
   String keyFor(DateTime month) =>
       'monthly_budget_${month.year}_${month.month.toString().padLeft(2, '0')}';
 
-  Future<int?> load(DateTime month) async {
+  Future<int?> load(DateTime month) => RestoreAccess.guarded(() async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
     return prefs.getInt(keyFor(month));
-  }
+  });
 
-  Future<bool> save(DateTime month, int cents) async {
-    if (cents <= 0 || cents > 9007199254740991) {
-      throw ArgumentError.value(cents, 'cents', 'Invalid budget');
-    }
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.setInt(keyFor(month), cents);
-  }
+  Future<bool> save(DateTime month, int cents) =>
+      RestoreAccess.guarded(() async {
+        if (cents <= 0 || cents > 9007199254740991) {
+          throw ArgumentError.value(cents, 'cents', 'Invalid budget');
+        }
+        final prefs = await SharedPreferences.getInstance();
+        return prefs.setInt(keyFor(month), cents);
+      });
 
   static int? parseCents(String text) {
     final normalized = text.trim().replaceAll(',', '.');
