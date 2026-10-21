@@ -10,6 +10,7 @@ import '../widgets/transaction_item.dart';
 import 'add_transaction_page.dart';
 import 'monthly_summary_page.dart';
 import 'csv_import_page.dart';
+import 'backup_page.dart';
 
 class HomePage extends StatefulWidget {
   final TransactionStore? store;
@@ -314,6 +315,16 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         actions: [
+          IconButton(
+            tooltip: 'Export backup',
+            onPressed: canWrite
+                ? () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const BackupPage()),
+                  )
+                : null,
+            icon: const Icon(Icons.save_alt),
+          ),
           IconButton(
             tooltip: 'Import CSV',
             onPressed: canWrite ? openCsvImport : null,
