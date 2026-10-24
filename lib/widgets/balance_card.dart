@@ -25,7 +25,7 @@ class BalanceCard extends StatelessWidget {
             const Text('Current Balance', style: TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
             Text(
-              '€${balance.toStringAsFixed(0)}',
+              '€${balance.toStringAsFixed(2)}',
               style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
@@ -36,12 +36,12 @@ class BalanceCard extends StatelessWidget {
               children: [
                 SummaryItem(
                   title: 'Income',
-                  amount: '€${income.toStringAsFixed(0)}',
+                  amount: '€${income.toStringAsFixed(2)}',
                   icon: Icons.arrow_downward,
                 ),
                 SummaryItem(
                   title: 'Expenses',
-                  amount: '€${expense.toStringAsFixed(0)}',
+                  amount: '€${expense.toStringAsFixed(2)}',
                   icon: Icons.arrow_upward,
                 ),
               ],

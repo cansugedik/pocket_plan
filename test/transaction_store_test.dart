@@ -180,7 +180,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Saved transaction'), findsOneWidget);
       expect(find.text('Unsaved transaction'), findsNothing);
-      expect(find.text('€-20'), findsOneWidget);
+      expect(find.text('€-20.00'), findsOneWidget);
       expect(storage.value, encode([old]));
       expect(find.text('Reload transactions'), findsOneWidget);
       expect(

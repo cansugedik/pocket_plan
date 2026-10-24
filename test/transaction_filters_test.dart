@@ -138,7 +138,7 @@ void main() {
       await applyFilters(tester);
       expect(find.byType(TransactionItem), findsOneWidget);
       expect(find.text('October meal'), findsOneWidget);
-      expect(find.text('€940'), findsOneWidget);
+      expect(find.text('€940.00'), findsOneWidget);
       await openFilters(tester);
       await choose(tester, 0, 'Income');
       await applyFilters(tester);

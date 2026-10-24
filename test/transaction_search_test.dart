@@ -100,7 +100,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(TransactionItem), findsOneWidget);
       expect(find.text('Market October'), findsOneWidget);
-      expect(find.text('€50'), findsNWidgets(2));
+      expect(find.text('€50.00'), findsNWidgets(2));
       await tester.enterText(search, 'nothing matches');
       await tester.pumpAndSettle();
       expect(

@@ -62,7 +62,7 @@ void main() {
     await tester.tap(find.text('Save Transaction'));
     await tester.pumpAndSettle();
     expect(find.text('Freelance'), findsOneWidget);
-    expect(find.text('€120'), findsNWidgets(2));
+    expect(find.text('€120.00'), findsNWidgets(2));
 
     await tester.tap(find.text('Project payment'));
     await tester.pumpAndSettle();
@@ -82,7 +82,7 @@ void main() {
     await tester.pumpWidget(const PocketPlanApp());
     await tester.pumpAndSettle();
     expect(find.text('Gift'), findsOneWidget);
-    expect(find.text('€150'), findsNWidgets(2));
+    expect(find.text('€150.00'), findsNWidgets(2));
   });
 
   test('Date-only JSON round trip and old records remain compatible', () {

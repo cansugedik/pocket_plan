@@ -604,8 +604,8 @@ class _HomePageState extends State<HomePage> {
                                     context,
                                   ).formatMediumDate(transaction.date!),
                             amount: transaction.isIncome
-                                ? '+€${transaction.amount.toStringAsFixed(0)}'
-                                : '-€${transaction.amount.toStringAsFixed(0)}',
+                                ? '+€${transaction.amount.toStringAsFixed(2)}'
+                                : '-€${transaction.amount.toStringAsFixed(2)}',
                             icon: transaction.icon,
                           );
                         },
