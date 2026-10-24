@@ -72,18 +72,56 @@ class TransactionItem extends StatelessWidget {
 
       child: Card(
         margin: const EdgeInsets.only(bottom: 10),
-        child: ListTile(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
           onTap: enabled ? onTap : null,
-          leading: CircleAvatar(child: Icon(icon)),
-          title: Text(title),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [Text(subtitle), Text(dateLabel)],
-          ),
-          isThreeLine: true,
-          trailing: Text(
-            amount,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final theme = Theme.of(context);
+                final stacked =
+                    constraints.maxWidth < 480 ||
+                    MediaQuery.textScalerOf(context).scale(16) > 22;
+                final amountText = Text(
+                  amount,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                );
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(child: Icon(icon)),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(title, style: theme.textTheme.titleMedium),
+                          const SizedBox(height: 4),
+                          Text(subtitle, style: theme.textTheme.bodyMedium),
+                          Text(dateLabel, style: theme.textTheme.bodySmall),
+                          if (stacked) ...[
+                            const SizedBox(height: 8),
+                            amountText,
+                          ],
+                        ],
+                      ),
+                    ),
+                    if (!stacked) ...[
+                      const SizedBox(width: 16),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: constraints.maxWidth * .35,
+                        ),
+                        child: amountText,
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),

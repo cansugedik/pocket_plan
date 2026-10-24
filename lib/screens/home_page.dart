@@ -81,6 +81,8 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  itemHeight: null,
                   key: ValueKey('type-$type'),
                   initialValue: type,
                   decoration: const InputDecoration(labelText: 'Type'),
@@ -93,6 +95,8 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  itemHeight: null,
                   key: ValueKey('category-$category'),
                   initialValue: category,
                   hint: const Text('All categories'),
@@ -110,6 +114,8 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  itemHeight: null,
                   key: ValueKey('month-$month'),
                   initialValue: month,
                   hint: const Text('All dates'),
@@ -374,6 +380,8 @@ class _HomePageState extends State<HomePage> {
         ],
         title: const Text(
           'Pocket Plan',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -397,222 +405,240 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             )
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: NestedScrollView(
-                headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                  SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (writesBlocked)
-                          MaterialBanner(
-                            content: const Text(
-                              'Saving is paused to protect your data. Reload transactions to continue.',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: loadTransactions,
-                                child: const Text('Reload transactions'),
-                              ),
-                            ],
-                          ),
-                        if (isSaving) const LinearProgressIndicator(),
-                        if (MediaQuery.viewInsetsOf(context).bottom == 0) ...[
-                          BalanceCard(
-                            balance: balance,
-                            income: totalIncome,
-                            expense: totalExpense,
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-                        Row(
+          : Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 960),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: NestedScrollView(
+                    headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                      SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const Expanded(
-                              child: Text(
-                                'Recent Transactions',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                            if (writesBlocked)
+                              MaterialBanner(
+                                content: const Text(
+                                  'Saving is paused to protect your data. Reload transactions to continue.',
                                 ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: loadTransactions,
+                                    child: const Text('Reload transactions'),
+                                  ),
+                                ],
                               ),
-                            ),
-                            PopupMenuButton<bool>(
-                              tooltip: 'Sort by date',
-                              icon: const Icon(Icons.sort),
-                              initialValue: oldestFirst,
-                              onSelected: (value) =>
-                                  setState(() => oldestFirst = value),
-                              itemBuilder: (context) => [
-                                CheckedPopupMenuItem(
-                                  value: false,
-                                  checked: !oldestFirst,
-                                  child: const Text('Newest first'),
+                            if (isSaving) const LinearProgressIndicator(),
+                            if (MediaQuery.viewInsetsOf(context).bottom ==
+                                0) ...[
+                              BalanceCard(
+                                balance: balance,
+                                income: totalIncome,
+                                expense: totalExpense,
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                            Wrap(
+                              alignment: WrapAlignment.spaceBetween,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 12,
+                              runSpacing: 8,
+                              children: [
+                                Text(
+                                  'Recent Transactions',
+                                  style: Theme.of(context).textTheme.titleLarge
+                                      ?.copyWith(fontWeight: FontWeight.w700),
                                 ),
-                                CheckedPopupMenuItem(
-                                  value: true,
-                                  checked: oldestFirst,
-                                  child: const Text('Oldest first'),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    PopupMenuButton<bool>(
+                                      tooltip: 'Sort by date',
+                                      icon: const Icon(Icons.sort),
+                                      initialValue: oldestFirst,
+                                      onSelected: (value) =>
+                                          setState(() => oldestFirst = value),
+                                      itemBuilder: (context) => [
+                                        CheckedPopupMenuItem(
+                                          value: false,
+                                          checked: !oldestFirst,
+                                          child: const Text('Newest first'),
+                                        ),
+                                        CheckedPopupMenuItem(
+                                          value: true,
+                                          checked: oldestFirst,
+                                          child: const Text('Oldest first'),
+                                        ),
+                                      ],
+                                    ),
+                                    TextButton.icon(
+                                      onPressed: showFilters,
+                                      icon: const Icon(Icons.filter_list),
+                                      label: Text(
+                                        hasFilters ? 'Filters on' : 'Filters',
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                            TextButton.icon(
-                              onPressed: showFilters,
-                              icon: const Icon(Icons.filter_list),
-                              label: Text(
-                                hasFilters ? 'Filters on' : 'Filters',
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                key: const ValueKey('transaction-search'),
-                                controller: searchController,
-                                onChanged: (value) =>
-                                    setState(() => searchQuery = value),
-                                decoration: InputDecoration(
-                                  labelText: 'Search transactions',
-                                  hintText: 'Title or category',
-                                  prefixIcon: const Icon(Icons.search),
-                                  suffixIcon: searchQuery.isEmpty
-                                      ? null
-                                      : IconButton(
-                                          tooltip: 'Clear search',
-                                          icon: const Icon(Icons.clear),
-                                          onPressed: () => setState(() {
-                                            searchController.clear();
-                                            searchQuery = '';
-                                          }),
-                                        ),
-                                  border: const OutlineInputBorder(),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton.filledTonal(
-                              tooltip: 'Search by date',
-                              onPressed: () async {
-                                final picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: searchDate ?? DateTime.now(),
-                                  firstDate: DateTime(1900),
-                                  lastDate: DateTime(2100, 12, 31),
-                                );
-                                if (!mounted || picked == null) return;
-                                setState(() => searchDate = picked);
-                              },
-                              icon: const Icon(Icons.calendar_today),
-                            ),
-                          ],
-                        ),
-                        if (searchDate != null)
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: InputChip(
-                              label: Text(
-                                'Date: ${MaterialLocalizations.of(context).formatShortDate(searchDate!)}',
-                              ),
-                              onDeleted: () =>
-                                  setState(() => searchDate = null),
-                              deleteButtonTooltipMessage: 'Clear search date',
-                            ),
-                          ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${oldestFirst ? 'Oldest first' : 'Newest first'} · Undated last',
-                        ),
-                        if (hasFilters) ...[
-                          const Text(
-                            'Search and filters affect the list. Balance shows all transactions.',
-                          ),
-                          TextButton(
-                            onPressed: () => setState(() {
-                              typeFilter = 'all';
-                              categoryFilter = null;
-                              monthFilter = null;
-                            }),
-                            child: const Text('Clear filters'),
-                          ),
-                        ],
-                        const SizedBox(height: 12),
-                      ],
-                    ),
-                  ),
-                ],
-                body: visibleTransactions.isEmpty
-                    ? Center(
-                        child: Text(
-                          searchQuery.trim().isNotEmpty || searchDate != null
-                              ? 'No transactions match your search and filters.'
-                              : hasFilters
-                              ? 'No transactions match your filters.'
-                              : 'No transactions yet.',
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: visibleTransactions.length,
-                        itemBuilder: (context, index) {
-                          final transaction = visibleTransactions[index];
-
-                          return TransactionItem(
-                            transactionKey: ObjectKey(transaction),
-                            onDelete: () => deleteTransaction(transaction),
-                            enabled: canWrite,
-
-                            onTap: () async {
-                              if (!canWrite) return;
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AddTransactionPage(
-                                    transaction: transaction,
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    key: const ValueKey('transaction-search'),
+                                    controller: searchController,
+                                    onChanged: (value) =>
+                                        setState(() => searchQuery = value),
+                                    decoration: InputDecoration(
+                                      labelText: 'Search transactions',
+                                      hintText: 'Title or category',
+                                      prefixIcon: const Icon(Icons.search),
+                                      suffixIcon: searchQuery.isEmpty
+                                          ? null
+                                          : IconButton(
+                                              tooltip: 'Clear search',
+                                              icon: const Icon(Icons.clear),
+                                              onPressed: () => setState(() {
+                                                searchController.clear();
+                                                searchQuery = '';
+                                              }),
+                                            ),
+                                      border: const OutlineInputBorder(),
+                                    ),
                                   ),
                                 ),
-                              );
-
-                              if (!mounted || result == null) return;
-
-                              final index = transactions.indexOf(transaction);
-
-                              if (index == -1) return;
-
-                              final candidates = List<Transaction>.of(
-                                transactions,
-                              );
-                              candidates[index] = Transaction(
-                                importId: transaction.importId,
-                                title: result['title'],
-                                category: result['category'],
-                                date: result['date'],
-                                amount: result['amount'],
-                                icon: result['isIncome']
-                                    ? Icons.account_balance_wallet
-                                    : Icons.shopping_cart,
-                                isIncome: result['isIncome'],
-                              );
-                              await saveTransactions(candidates);
-                            },
-
-                            title: transaction.title,
-                            subtitle: transaction.category,
-                            dateLabel: transaction.date == null
-                                ? 'Date not specified'
-                                : MaterialLocalizations.of(
-                                    context,
-                                  ).formatMediumDate(transaction.date!),
-                            amount: transaction.isIncome
-                                ? '+€${transaction.amount.toStringAsFixed(2)}'
-                                : '-€${transaction.amount.toStringAsFixed(2)}',
-                            icon: transaction.icon,
-                          );
-                        },
+                                const SizedBox(width: 8),
+                                IconButton.filledTonal(
+                                  tooltip: 'Search by date',
+                                  onPressed: () async {
+                                    final picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: searchDate ?? DateTime.now(),
+                                      firstDate: DateTime(1900),
+                                      lastDate: DateTime(2100, 12, 31),
+                                    );
+                                    if (!mounted || picked == null) return;
+                                    setState(() => searchDate = picked);
+                                  },
+                                  icon: const Icon(Icons.calendar_today),
+                                ),
+                              ],
+                            ),
+                            if (searchDate != null)
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: InputChip(
+                                  label: Text(
+                                    'Date: ${MaterialLocalizations.of(context).formatShortDate(searchDate!)}',
+                                  ),
+                                  onDeleted: () =>
+                                      setState(() => searchDate = null),
+                                  deleteButtonTooltipMessage:
+                                      'Clear search date',
+                                ),
+                              ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${oldestFirst ? 'Oldest first' : 'Newest first'} · Undated last',
+                            ),
+                            if (hasFilters) ...[
+                              const Text(
+                                'Search and filters affect the list. Balance shows all transactions.',
+                              ),
+                              TextButton(
+                                onPressed: () => setState(() {
+                                  typeFilter = 'all';
+                                  categoryFilter = null;
+                                  monthFilter = null;
+                                }),
+                                child: const Text('Clear filters'),
+                              ),
+                            ],
+                            const SizedBox(height: 12),
+                          ],
+                        ),
                       ),
+                    ],
+                    body: visibleTransactions.isEmpty
+                        ? Center(
+                            child: Text(
+                              searchQuery.trim().isNotEmpty ||
+                                      searchDate != null
+                                  ? 'No transactions match your search and filters.'
+                                  : hasFilters
+                                  ? 'No transactions match your filters.'
+                                  : 'No transactions yet.',
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: visibleTransactions.length,
+                            itemBuilder: (context, index) {
+                              final transaction = visibleTransactions[index];
+
+                              return TransactionItem(
+                                transactionKey: ObjectKey(transaction),
+                                onDelete: () => deleteTransaction(transaction),
+                                enabled: canWrite,
+
+                                onTap: () async {
+                                  if (!canWrite) return;
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AddTransactionPage(
+                                        transaction: transaction,
+                                      ),
+                                    ),
+                                  );
+
+                                  if (!mounted || result == null) return;
+
+                                  final index = transactions.indexOf(
+                                    transaction,
+                                  );
+
+                                  if (index == -1) return;
+
+                                  final candidates = List<Transaction>.of(
+                                    transactions,
+                                  );
+                                  candidates[index] = Transaction(
+                                    importId: transaction.importId,
+                                    title: result['title'],
+                                    category: result['category'],
+                                    date: result['date'],
+                                    amount: result['amount'],
+                                    icon: result['isIncome']
+                                        ? Icons.account_balance_wallet
+                                        : Icons.shopping_cart,
+                                    isIncome: result['isIncome'],
+                                  );
+                                  await saveTransactions(candidates);
+                                },
+
+                                title: transaction.title,
+                                subtitle: transaction.category,
+                                dateLabel: transaction.date == null
+                                    ? 'Date not specified'
+                                    : MaterialLocalizations.of(
+                                        context,
+                                      ).formatMediumDate(transaction.date!),
+                                amount: transaction.isIncome
+                                    ? '+€${transaction.amount.toStringAsFixed(2)}'
+                                    : '-€${transaction.amount.toStringAsFixed(2)}',
+                                icon: transaction.icon,
+                              );
+                            },
+                          ),
+                  ),
+                ),
               ),
             ),
       floatingActionButton: FloatingActionButton(
+        tooltip: 'Add transaction',
         onPressed: !canWrite
             ? null
             : () async {

@@ -201,6 +201,8 @@ void main() {
     await choose(tester, 1, 'Food');
     await choose(tester, 2, 'October 2026');
     await applyFilters(tester);
+    await tester.ensureVisible(find.text('October meal'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('October meal'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'Updated meal');

@@ -16,35 +16,84 @@ class BalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final dark = theme.brightness == Brightness.dark;
+    Widget summary(String title, double amount, IconData icon, Color accent) =>
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: SummaryItem(
+            title: title,
+            amount: '€${amount.toStringAsFixed(2)}',
+            icon: icon,
+            accentColor: accent,
+          ),
+        );
+    final incomeTile = summary(
+      'Income',
+      income,
+      Icons.arrow_downward_rounded,
+      dark ? Colors.green.shade300 : Colors.green.shade800,
+    );
+    final expenseTile = summary(
+      'Expenses',
+      expense,
+      Icons.arrow_upward_rounded,
+      dark ? Colors.red.shade300 : Colors.red.shade800,
+    );
+    return Card.filled(
+      margin: EdgeInsets.zero,
+      color: colors.primaryContainer,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Current Balance', style: TextStyle(fontSize: 16)),
+            Text(
+              'Current Balance',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: colors.onPrimaryContainer,
+              ),
+            ),
             const SizedBox(height: 8),
             Text(
               '€${balance.toStringAsFixed(2)}',
-              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              style: theme.textTheme.displaySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: colors.onPrimaryContainer,
+                letterSpacing: -1,
+              ),
             ),
-            const SizedBox(height: 20),
-            Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              spacing: 24,
-              runSpacing: 12,
-              children: [
-                SummaryItem(
-                  title: 'Income',
-                  amount: '€${income.toStringAsFixed(2)}',
-                  icon: Icons.arrow_downward,
-                ),
-                SummaryItem(
-                  title: 'Expenses',
-                  amount: '€${expense.toStringAsFixed(2)}',
-                  icon: Icons.arrow_upward,
-                ),
-              ],
+            const SizedBox(height: 24),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                // Stack when space or enlarged text makes two columns hard to read.
+                final columns =
+                    constraints.maxWidth >= 460 &&
+                    MediaQuery.textScalerOf(context).scale(16) <= 22;
+                return columns
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: incomeTile),
+                          const SizedBox(width: 16),
+                          Expanded(child: expenseTile),
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          incomeTile,
+                          const SizedBox(height: 12),
+                          expenseTile,
+                        ],
+                      );
+              },
             ),
           ],
         ),
