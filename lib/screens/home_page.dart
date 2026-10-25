@@ -398,7 +398,7 @@ class _HomePageState extends State<HomePage> {
           ),
           IconButton(
             tooltip: 'Monthly summary',
-            onPressed: isLoading
+            onPressed: isLoading || loadFailed
                 ? null
                 : () => Navigator.push(
                     context,
@@ -425,20 +425,51 @@ class _HomePageState extends State<HomePage> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : loadFailed
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Transactions could not be loaded. Your saved data has not been replaced.',
+          ? SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: (constraints.maxHeight - 48).clamp(
+                        0.0,
+                        double.infinity,
+                      ),
                     ),
-                    TextButton(
-                      onPressed: loadTransactions,
-                      child: const Text('Retry loading'),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 440),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 48,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Unable to load transactions',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Transactions could not be loaded. Your saved data has not been replaced.',
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 20),
+                            FilledButton.icon(
+                              onPressed: loadTransactions,
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Retry loading'),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             )
