@@ -7,6 +7,7 @@ import '../utils/transaction_search.dart';
 import '../utils/transaction_date_filter.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/transaction_item.dart';
+import '../widgets/transaction_empty_state.dart';
 import 'add_transaction_page.dart';
 import 'monthly_summary_page.dart';
 import 'csv_import_page.dart';
@@ -288,6 +289,42 @@ class _HomePageState extends State<HomePage> {
     ).showSnackBar(SnackBar(content: Text('$result transactions imported.')));
   }
 
+  Future<void> openAddTransaction() async {
+    if (!canWrite) return;
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddTransactionPage()),
+    );
+
+    if (!mounted || result == null) return;
+
+    await saveTransactions([
+      Transaction(
+        title: result['title'],
+        category: result['category'],
+        date: result['date'],
+        amount: result['amount'],
+        icon: result['isIncome']
+            ? Icons.account_balance_wallet
+            : Icons.shopping_cart,
+        isIncome: result['isIncome'],
+      ),
+      ...transactions,
+    ]);
+  }
+
+  void clearSearchAndFilters() {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      searchController.clear();
+      searchQuery = '';
+      searchDate = null;
+      typeFilter = 'all';
+      categoryFilter = null;
+      monthFilter = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final matchingTransactions = transactions.where((t) {
@@ -563,15 +600,26 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                     body: visibleTransactions.isEmpty
-                        ? Center(
-                            child: Text(
-                              searchQuery.trim().isNotEmpty ||
-                                      searchDate != null
-                                  ? 'No transactions match your search and filters.'
-                                  : hasFilters
-                                  ? 'No transactions match your filters.'
-                                  : 'No transactions yet.',
-                            ),
+                        ? TransactionEmptyState(
+                            hasConditions:
+                                searchQuery.trim().isNotEmpty ||
+                                searchDate != null ||
+                                hasFilters,
+                            title:
+                                searchQuery.trim().isNotEmpty ||
+                                    searchDate != null
+                                ? 'No transactions match your search and filters.'
+                                : hasFilters
+                                ? 'No transactions match your filters.'
+                                : 'No transactions yet.',
+                            onAction:
+                                searchQuery.trim().isNotEmpty ||
+                                    searchDate != null ||
+                                    hasFilters
+                                ? clearSearchAndFilters
+                                : canWrite
+                                ? openAddTransaction
+                                : null,
                           )
                         : ListView.builder(
                             itemCount: visibleTransactions.length,
@@ -639,32 +687,7 @@ class _HomePageState extends State<HomePage> {
             ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Add transaction',
-        onPressed: !canWrite
-            ? null
-            : () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddTransactionPage(),
-                  ),
-                );
-
-                if (!mounted || result == null) return;
-
-                await saveTransactions([
-                  Transaction(
-                    title: result['title'],
-                    category: result['category'],
-                    date: result['date'],
-                    amount: result['amount'],
-                    icon: result['isIncome']
-                        ? Icons.account_balance_wallet
-                        : Icons.shopping_cart,
-                    isIncome: result['isIncome'],
-                  ),
-                  ...transactions,
-                ]);
-              },
+        onPressed: !canWrite ? null : openAddTransaction,
         child: const Icon(Icons.add),
       ),
     );
