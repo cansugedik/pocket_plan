@@ -144,6 +144,8 @@ void main() {
         ),
       );
       await tester.scrollUntilVisible(find.text('Choose CSV file'), 150);
+      await tester.ensureVisible(find.text('Choose CSV file'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Choose CSV file'));
       await tester.pumpAndSettle();
       expect(saved, isNull);
@@ -151,6 +153,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Tallinja bus'), findsOneWidget);
       await tester.ensureVisible(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
       await tester.tap(find.byType(DropdownButtonFormField<String>));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Shopping').last);
@@ -183,6 +186,8 @@ void main() {
       ),
     );
     await tester.scrollUntilVisible(find.text('Choose CSV file'), 150);
+    await tester.ensureVisible(find.text('Choose CSV file'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Choose CSV file'));
     await tester.pumpAndSettle();
     expect(find.byType(CheckboxListTile), findsNothing);
@@ -207,6 +212,8 @@ void main() {
       ),
     );
     await tester.scrollUntilVisible(find.text('Choose CSV file'), 150);
+    await tester.ensureVisible(find.text('Choose CSV file'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Choose CSV file'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('Tallinja bus'), 150);

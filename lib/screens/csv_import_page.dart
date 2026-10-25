@@ -130,62 +130,164 @@ class _CsvImportPageState extends State<CsvImportPage> {
   @override
   Widget build(BuildContext context) {
     final result = preview;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     return PopScope(
       canPop: !busy,
       child: Scaffold(
         appBar: AppBar(title: const Text('Import Revolut CSV')),
-        body: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            const Text(
-              'Files are processed on this device. Nothing is uploaded.',
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'English Revolut account CSV, EUR only. Completed card payments and refunds with zero fees are supported. Transfers and other rows are skipped. Positive card amounts are recorded as income/refunds.',
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Review every category and selection before importing. Suggested categories can be changed. Imported rows are recognised on re-import; matching manual records are only possible duplicates. Identical bank rows without an ID cannot be distinguished perfectly.',
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: busy ? null : pick,
-              icon: const Icon(Icons.upload_file),
-              label: const Text('Choose CSV file'),
-            ),
-            if (busy) const LinearProgressIndicator(),
-            if (error != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
+        body: SafeArea(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: ListView(
+                padding: const EdgeInsets.all(24),
+                children: [
+                  Card.filled(
+                    margin: EdgeInsets.zero,
+                    color: colors.primaryContainer,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.upload_file,
+                            color: colors.onPrimaryContainer,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Import a statement',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: colors.onPrimaryContainer,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Files are processed on this device. Nothing is uploaded.',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Card.filled(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Supported files',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'English Revolut account CSV, EUR only. Completed card payments and refunds with zero fees are supported. Transfers and other rows are skipped. Positive card amounts are recorded as income/refunds.',
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Review every category and selection before importing. Suggested categories can be changed. Imported rows are recognised on re-import; matching manual records are only possible duplicates. Identical bank rows without an ID cannot be distinguished perfectly.',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  OutlinedButton.icon(
+                    onPressed: busy ? null : pick,
+                    icon: const Icon(Icons.upload_file),
+                    label: const Text('Choose CSV file'),
+                  ),
+                  if (busy)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: LinearProgressIndicator(
+                        semanticsLabel: 'Reading or importing CSV',
+                      ),
+                    ),
+                  if (error != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Semantics(
+                        liveRegion: true,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: colors.errorContainer,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            error!,
+                            style: TextStyle(color: colors.onErrorContainer),
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (result != null) ...[
+                    const SizedBox(height: 16),
+                    Card.filled(
+                      margin: EdgeInsets.zero,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'Review transactions',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              filename ?? '',
+                              style: theme.textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${selected.length} selected · ${result.rows.where((r) => r.duplicate).length} already imported · ${result.skipped.length} skipped',
+                            ),
+                            const SizedBox(height: 16),
+                            FilledButton(
+                              onPressed: busy || selected.isEmpty
+                                  ? null
+                                  : importSelected,
+                              child: Text(
+                                'Import ${selected.length} selected transactions',
+                              ),
+                            ),
+                            if (result.rows.isEmpty) ...[
+                              const SizedBox(height: 12),
+                              const Text('No supported transactions found.'),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    for (var i = 0; i < result.rows.length; i++)
+                      buildRow(i, result.rows[i]),
+                    if (result.skipped.isNotEmpty)
+                      ExpansionTile(
+                        title: Text('Skipped rows (${result.skipped.length})'),
+                        children: result.skipped
+                            .map((message) => ListTile(title: Text(message)))
+                            .toList(),
+                      ),
+                  ],
+                ],
               ),
-            if (result != null) ...[
-              Text(filename ?? ''),
-              Text(
-                '${selected.length} selected · ${result.rows.where((r) => r.duplicate).length} already imported · ${result.skipped.length} skipped',
-              ),
-              const SizedBox(height: 12),
-              FilledButton(
-                onPressed: busy || selected.isEmpty ? null : importSelected,
-                child: Text('Import ${selected.length} selected transactions'),
-              ),
-              if (result.rows.isEmpty)
-                const Text('No supported transactions found.'),
-              for (var i = 0; i < result.rows.length; i++)
-                buildRow(i, result.rows[i]),
-              if (result.skipped.isNotEmpty)
-                ExpansionTile(
-                  title: Text('Skipped rows (${result.skipped.length})'),
-                  children: result.skipped
-                      .map((message) => ListTile(title: Text(message)))
-                      .toList(),
-                ),
-            ],
-          ],
+            ),
+          ),
         ),
       ),
     );
@@ -203,9 +305,11 @@ class _CsvImportPageState extends State<CsvImportPage> {
       'Other',
     ];
     const incomes = ['Salary', 'Freelance', 'Gift', 'Other'];
-    return Card(
+    return Card.filled(
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             CheckboxListTile(
@@ -232,6 +336,8 @@ class _CsvImportPageState extends State<CsvImportPage> {
             DropdownButtonFormField<String>(
               key: ValueKey('${t.importId}-${categories[index]}'),
               initialValue: categories[index],
+              isExpanded: true,
+              itemHeight: null,
               decoration: const InputDecoration(labelText: 'Category'),
               items: (t.isIncome ? incomes : expenses)
                   .map((c) => DropdownMenuItem(value: c, child: Text(c)))
