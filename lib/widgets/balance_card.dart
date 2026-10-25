@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'summary_item.dart';
 
 class BalanceCard extends StatelessWidget {
+  final String title;
+  final Key? balanceKey;
   final double balance;
   final double income;
   final double expense;
 
   const BalanceCard({
     super.key,
+    this.title = 'Current Balance',
+    this.balanceKey,
     required this.balance,
     required this.income,
     required this.expense,
@@ -55,7 +59,7 @@ class BalanceCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Current Balance',
+              title,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: colors.onPrimaryContainer,
               ),
@@ -63,6 +67,7 @@ class BalanceCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               '€${balance.toStringAsFixed(2)}',
+              key: balanceKey,
               style: theme.textTheme.displaySmall?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: colors.onPrimaryContainer,

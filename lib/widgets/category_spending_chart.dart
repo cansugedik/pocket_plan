@@ -15,15 +15,21 @@ class CategorySpendingChart extends StatelessWidget {
         final amountOrder = b.value.compareTo(a.value);
         return amountOrder != 0 ? amountOrder : a.key.compareTo(b.key);
       });
-    return Card(
+    final theme = Theme.of(context);
+    return Card.filled(
+      margin: EdgeInsets.zero,
+      color: theme.colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Spending by category',
-              style: Theme.of(context).textTheme.titleLarge,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 8),
             if (summary.expense <= 0 || categories.isEmpty)
@@ -32,14 +38,20 @@ class CategorySpendingChart extends StatelessWidget {
               const Text('Share of total monthly expenses'),
               const SizedBox(height: 16),
               for (final category in categories)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Wrap(
+                        alignment: WrapAlignment.spaceBetween,
                         spacing: 12,
-                        runSpacing: 4,
+                        runSpacing: 8,
                         children: [
                           Text(
                             category.key,

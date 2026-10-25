@@ -84,15 +84,22 @@ class _MonthlyBudgetCardState extends State<MonthlyBudgetCard> {
     final spentCents = (widget.expenses * 100).round();
     final remaining = (budgetCents ?? 0) - spentCents;
     final exceeded = remaining < 0;
-    return Card(
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return Card.filled(
+      margin: EdgeInsets.zero,
+      color: colors.surfaceContainerLow,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Monthly budget',
-              style: Theme.of(context).textTheme.titleLarge,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 12),
             if (loading)
@@ -104,19 +111,56 @@ class _MonthlyBudgetCardState extends State<MonthlyBudgetCard> {
               if (budgetCents == null)
                 const Text('No budget set for this month.')
               else ...[
-                Text('Budget: €${(budgetCents! / 100).toStringAsFixed(2)}'),
-                Text('Spent: €${(spentCents / 100).toStringAsFixed(2)}'),
                 Text(
-                  '${exceeded ? 'Over budget' : 'Remaining'}: €${(remaining.abs() / 100).toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
+                  'Budget: €${(budgetCents! / 100).toStringAsFixed(2)}',
+                  style: theme.textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Spent: €${(spentCents / 100).toStringAsFixed(2)}',
+                  style: theme.textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
                     color: exceeded
-                        ? Theme.of(context).colorScheme.error
-                        : null,
+                        ? colors.errorContainer
+                        : colors.primaryContainer,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        exceeded
+                            ? Icons.warning_amber_rounded
+                            : Icons.account_balance_wallet_outlined,
+                        color: exceeded
+                            ? colors.onErrorContainer
+                            : colors.onPrimaryContainer,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          '${exceeded ? 'Over budget' : 'Remaining'}: €${(remaining.abs() / 100).toStringAsFixed(2)}',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: exceeded
+                                ? colors.onErrorContainer
+                                : colors.onPrimaryContainer,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 12),
                 LinearProgressIndicator(
+                  minHeight: 12,
+                  borderRadius: BorderRadius.circular(6),
+                  backgroundColor: colors.surfaceContainerHighest,
                   value: (spentCents / budgetCents!).clamp(0.0, 1.0),
                   semanticsLabel: 'Monthly budget used',
                   semanticsValue:
@@ -125,9 +169,10 @@ class _MonthlyBudgetCardState extends State<MonthlyBudgetCard> {
                 ),
               ],
               const SizedBox(height: 12),
-              OutlinedButton(
+              OutlinedButton.icon(
+                icon: const Icon(Icons.edit_outlined),
                 onPressed: saving ? null : editBudget,
-                child: Text(
+                label: Text(
                   saving
                       ? 'Saving…'
                       : budgetCents == null
@@ -172,6 +217,7 @@ class _BudgetDialogState extends State<_BudgetDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
+    scrollable: true,
     title: Text(
       'Budget for ${MaterialLocalizations.of(context).formatMonthYear(widget.month)}',
     ),
@@ -184,6 +230,7 @@ class _BudgetDialogState extends State<_BudgetDialog> {
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         decoration: const InputDecoration(
           labelText: 'Monthly expense budget (€)',
+          errorMaxLines: 3,
         ),
         validator: (text) => MonthlyBudgetStore.parseCents(text ?? '') == null
             ? 'Enter a positive amount with up to 2 decimals.'

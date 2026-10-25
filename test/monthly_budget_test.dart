@@ -11,6 +11,7 @@ Future<void> enterBudget(
   bool editing = false,
 }) async {
   await tester.ensureVisible(find.text(editing ? 'Edit budget' : 'Set budget'));
+  await tester.pumpAndSettle();
   await tester.tap(find.text(editing ? 'Edit budget' : 'Set budget'));
   await tester.pumpAndSettle();
   await tester.enterText(find.byKey(const ValueKey('budget-amount')), text);
