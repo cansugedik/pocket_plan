@@ -84,6 +84,11 @@ void main() {
   testWidgets(
     'Search combines with filters, clears independently and never saves view state',
     (tester) async {
+      // Leave room for the expanded filter summary in these behavior tests.
+      tester.view.physicalSize = const Size(1000, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(const PocketPlanApp());
       await tester.pumpAndSettle();
       final search = find.byKey(const ValueKey('transaction-search'));
@@ -126,6 +131,11 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('transactions'), stored);
       await tester.pumpWidget(const SizedBox.shrink());
+      // Leave room for the expanded filter summary in these behavior tests.
+      tester.view.physicalSize = const Size(1000, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(const PocketPlanApp());
       await tester.pumpAndSettle();
       expect(tester.widget<TextField>(search).controller!.text, isEmpty);
@@ -135,6 +145,11 @@ void main() {
   testWidgets(
     'Calendar beside search combines with text, cancels safely and clears independently',
     (tester) async {
+      // Leave room for the expanded filter summary in these behavior tests.
+      tester.view.physicalSize = const Size(1000, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(const PocketPlanApp());
       await tester.pumpAndSettle();
       final search = find.byKey(const ValueKey('transaction-search'));
@@ -182,6 +197,11 @@ void main() {
   testWidgets('Editing searched records keeps hidden transactions intact', (
     tester,
   ) async {
+    // Leave room for the expanded filter summary in these behavior tests.
+    tester.view.physicalSize = const Size(1000, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const PocketPlanApp());
     await tester.pumpAndSettle();
     await tester.enterText(
@@ -216,6 +236,11 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetViewInsets);
+    // Leave room for the expanded filter summary in these behavior tests.
+    tester.view.physicalSize = const Size(1000, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const PocketPlanApp());
     await tester.pumpAndSettle();
     tester.view.viewInsets = const FakeViewPadding(bottom: 280);

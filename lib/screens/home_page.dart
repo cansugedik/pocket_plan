@@ -487,8 +487,8 @@ class _HomePageState extends State<HomePage> {
                                   style: Theme.of(context).textTheme.titleLarge
                                       ?.copyWith(fontWeight: FontWeight.w700),
                                 ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
+                                Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     PopupMenuButton<bool>(
                                       tooltip: 'Sort by date',
@@ -564,27 +564,67 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ],
                             ),
-                            if (searchDate != null)
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: InputChip(
-                                  label: Text(
-                                    'Date: ${MaterialLocalizations.of(context).formatShortDate(searchDate!)}',
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              children: [
+                                if (searchDate != null)
+                                  InputChip(
+                                    label: Text(
+                                      'Date: ${MaterialLocalizations.of(context).formatShortDate(searchDate!)}',
+                                    ),
+                                    onDeleted: () =>
+                                        setState(() => searchDate = null),
+                                    deleteButtonTooltipMessage:
+                                        'Clear search date',
                                   ),
-                                  onDeleted: () =>
-                                      setState(() => searchDate = null),
-                                  deleteButtonTooltipMessage:
-                                      'Clear search date',
-                                ),
-                              ),
+                                if (typeFilter != 'all')
+                                  InputChip(
+                                    label: Text(
+                                      'Type: ${typeFilter == 'income' ? 'Income' : 'Expense'}',
+                                    ),
+                                    onDeleted: () =>
+                                        setState(() => typeFilter = 'all'),
+                                    deleteButtonTooltipMessage:
+                                        'Clear type filter',
+                                  ),
+                                if (categoryFilter != null)
+                                  InputChip(
+                                    label: Text('Category: $categoryFilter'),
+                                    onDeleted: () =>
+                                        setState(() => categoryFilter = null),
+                                    deleteButtonTooltipMessage:
+                                        'Clear category filter',
+                                  ),
+                                if (monthFilter != null)
+                                  InputChip(
+                                    label: Text(
+                                      monthFilter == 'undated'
+                                          ? 'Month: Date not specified'
+                                          : 'Month: ${MaterialLocalizations.of(context).formatMonthYear(DateTime.parse('$monthFilter-01'))}',
+                                    ),
+                                    onDeleted: () =>
+                                        setState(() => monthFilter = null),
+                                    deleteButtonTooltipMessage:
+                                        'Clear month filter',
+                                  ),
+                              ],
+                            ),
                             const SizedBox(height: 8),
                             Text(
                               '${oldestFirst ? 'Oldest first' : 'Newest first'} · Undated last',
                             ),
-                            if (hasFilters) ...[
+                            Text(
+                              '${visibleTransactions.length} of ${transactions.length} transactions',
+                              key: const ValueKey('transaction-result-count'),
+                            ),
+                            if (hasFilters ||
+                                searchQuery.trim().isNotEmpty ||
+                                searchDate != null)
                               const Text(
                                 'Search and filters affect the list. Balance shows all transactions.',
                               ),
+                            if (hasFilters) ...[
                               TextButton(
                                 onPressed: () => setState(() {
                                   typeFilter = 'all';

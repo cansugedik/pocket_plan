@@ -75,6 +75,11 @@ void main() {
       });
       final stored = jsonEncode(records);
       SharedPreferences.setMockInitialValues({'transactions': stored});
+      // Leave room for the expanded filter summary in these behavior tests.
+      tester.view.physicalSize = const Size(1000, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(const PocketPlanApp());
       await tester.pumpAndSettle();
       List<String> titles() => tester
@@ -129,6 +134,11 @@ void main() {
   testWidgets(
     'Combined filters, empty results, reset and cancellation do not change storage',
     (tester) async {
+      // Leave room for the expanded filter summary in these behavior tests.
+      tester.view.physicalSize = const Size(1000, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(const PocketPlanApp());
       await tester.pumpAndSettle();
       await openFilters(tester);
@@ -171,6 +181,11 @@ void main() {
   testWidgets('Undated legacy records remain selectable; reset restores all', (
     tester,
   ) async {
+    // Leave room for the expanded filter summary in these behavior tests.
+    tester.view.physicalSize = const Size(1000, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const PocketPlanApp());
     await tester.pumpAndSettle();
     await openFilters(tester);
@@ -195,6 +210,11 @@ void main() {
   testWidgets('Editing and deleting filtered records preserve hidden records', (
     tester,
   ) async {
+    // Leave room for the expanded filter summary in these behavior tests.
+    tester.view.physicalSize = const Size(1000, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const PocketPlanApp());
     await tester.pumpAndSettle();
     await openFilters(tester);

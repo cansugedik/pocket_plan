@@ -24,39 +24,40 @@ class TransactionItem extends StatelessWidget {
     required this.transactionKey,
   });
 
+  Future<bool> confirmDelete(BuildContext context) async {
+    if (!enabled) return false;
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Delete Transaction'),
+            content: const Text(
+              'Are you sure you want to delete this transaction?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!context.mounted || !confirmed) return false;
+    return onDelete();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dismissible(
       key: transactionKey,
       direction: enabled ? DismissDirection.endToStart : DismissDirection.none,
 
-      // Silme onayı
-      confirmDismiss: (direction) async {
-        if (!enabled) return false;
-        final confirmed =
-            await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Delete Transaction'),
-                content: const Text(
-                  'Are you sure you want to delete this transaction?',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: const Text('Delete'),
-                  ),
-                ],
-              ),
-            ) ??
-            false;
-        if (!context.mounted || !confirmed) return false;
-        return onDelete();
-      },
+      confirmDismiss: (_) => confirmDelete(context),
 
       // Silme arka planı
       background: Container(
@@ -98,7 +99,40 @@ class TransactionItem extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(title, style: theme.textTheme.titleMedium),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  title,
+                                  style: theme.textTheme.titleMedium,
+                                ),
+                              ),
+                              PopupMenuButton<String>(
+                                tooltip: 'Actions for $title',
+                                enabled: enabled,
+                                icon: const Icon(Icons.more_vert),
+                                onSelected: (action) async {
+                                  if (!enabled) return;
+                                  if (action == 'edit') {
+                                    onTap();
+                                  } else {
+                                    await confirmDelete(context);
+                                  }
+                                },
+                                itemBuilder: (_) => const [
+                                  PopupMenuItem(
+                                    value: 'edit',
+                                    child: Text('Edit'),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text('Delete'),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 4),
                           Text(subtitle, style: theme.textTheme.bodyMedium),
                           Text(dateLabel, style: theme.textTheme.bodySmall),
