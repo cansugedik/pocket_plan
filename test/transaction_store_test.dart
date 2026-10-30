@@ -118,17 +118,18 @@ void main() {
             .onPressed,
         isNull,
       );
+      await tester.tap(find.byTooltip('App menu'));
+      await tester.pumpAndSettle();
       expect(
         tester
-            .widget<IconButton>(
-              find.byWidgetPredicate(
-                (widget) =>
-                    widget is IconButton && widget.tooltip == 'Import CSV',
-              ),
+            .widget<MenuItemButton>(
+              find.widgetWithText(MenuItemButton, 'Import CSV'),
             )
             .onPressed,
         isNull,
       );
+      await tester.tap(find.byTooltip('App menu'));
+      await tester.pumpAndSettle();
       expect(storage.writes, 0);
       storage.value = encode([old]);
       await tester.tap(find.text('Retry loading'));

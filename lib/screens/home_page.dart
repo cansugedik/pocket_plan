@@ -358,61 +358,71 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-            tooltip: 'Export backup',
-            onPressed: canWrite
-                ? () async {
-                    final restored = await Navigator.push<bool>(
-                      context,
-                      MaterialPageRoute(builder: (_) => const BackupPage()),
-                    );
-                    if (!mounted) return;
-                    await loadTransactions();
-                    if (restored == true && mounted) {
-                      setState(() {
-                        searchController.clear();
-                        searchQuery = '';
-                        typeFilter = 'all';
-                        categoryFilter = null;
-                        monthFilter = null;
-                        searchDate = null;
-                      });
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Backup restored. Transactions and budgets have been replaced.',
-                            ),
-                          ),
+          MenuAnchor(
+            builder: (context, controller, child) => IconButton(
+              tooltip: 'App menu',
+              icon: const Icon(Icons.more_vert),
+              onPressed: () =>
+                  controller.isOpen ? controller.close() : controller.open(),
+            ),
+            menuChildren: [
+              MenuItemButton(
+                onPressed: canWrite
+                    ? () async {
+                        final restored = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(builder: (_) => const BackupPage()),
                         );
+                        if (!mounted) return;
+                        await loadTransactions();
+                        if (restored == true && mounted) {
+                          setState(() {
+                            searchController.clear();
+                            searchQuery = '';
+                            typeFilter = 'all';
+                            categoryFilter = null;
+                            monthFilter = null;
+                            searchDate = null;
+                          });
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Backup restored. Transactions and budgets have been replaced.',
+                                ),
+                              ),
+                            );
+                          }
+                        }
                       }
-                    }
-                  }
-                : null,
-            icon: const Icon(Icons.save_alt),
-          ),
-          IconButton(
-            tooltip: 'Import CSV',
-            onPressed: canWrite ? openCsvImport : null,
-            icon: const Icon(Icons.upload_file),
-          ),
-          IconButton(
-            tooltip: 'Monthly summary',
-            onPressed: isLoading || loadFailed
-                ? null
-                : () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MonthlySummaryPage(
-                        transactions: List.unmodifiable(transactions),
-                        initialMonth:
-                            monthFilter != null && monthFilter != 'undated'
-                            ? DateTime.parse('$monthFilter-01')
-                            : null,
+                    : null,
+                leadingIcon: const Icon(Icons.save_alt),
+                child: const Text('Backup & restore'),
+              ),
+              MenuItemButton(
+                onPressed: canWrite ? openCsvImport : null,
+                leadingIcon: const Icon(Icons.upload_file),
+                child: const Text('Import CSV'),
+              ),
+              MenuItemButton(
+                onPressed: isLoading || loadFailed
+                    ? null
+                    : () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MonthlySummaryPage(
+                            transactions: List.unmodifiable(transactions),
+                            initialMonth:
+                                monthFilter != null && monthFilter != 'undated'
+                                ? DateTime.parse('$monthFilter-01')
+                                : null,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-            icon: const Icon(Icons.calendar_month),
+                leadingIcon: const Icon(Icons.calendar_month),
+                child: const Text('Monthly summary'),
+              ),
+            ],
           ),
         ],
         title: const Text(

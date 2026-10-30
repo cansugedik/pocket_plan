@@ -102,7 +102,9 @@ void main() {
     SharedPreferences.setMockInitialValues({'transactions': stored});
     await tester.pumpWidget(const PocketPlanApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Monthly summary'));
+    await tester.tap(find.byTooltip('App menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Monthly summary'));
     await tester.pumpAndSettle();
     expect(find.text('Monthly balance'), findsOneWidget);
     await tester.pageBack();

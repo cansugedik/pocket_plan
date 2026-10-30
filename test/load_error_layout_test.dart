@@ -14,11 +14,17 @@ class DelayedStorage extends fixtures.MemoryStorage {
 }
 
 void main() {
-  IconButton summary(WidgetTester tester) => tester.widget<IconButton>(
-    find.byWidgetPredicate(
-      (widget) => widget is IconButton && widget.tooltip == 'Monthly summary',
-    ),
-  );
+  Future<MenuItemButton> summary(WidgetTester tester) async {
+    await tester.tap(find.byTooltip('App menu'));
+    await tester.pump(const Duration(milliseconds: 300));
+    final item = tester.widget<MenuItemButton>(
+      find.widgetWithText(MenuItemButton, 'Monthly summary'),
+    );
+    await tester.tap(find.byTooltip('App menu'));
+    await tester.pump(const Duration(milliseconds: 300));
+    return item;
+  }
+
   for (final readFailure in [false, true]) {
     testWidgets(
       'Error and retry preserve data; narrow large text, read failure=$readFailure',
@@ -45,7 +51,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('Unable to load transactions'), findsOneWidget);
         expect(find.byType(BalanceCard), findsNothing);
-        expect(summary(tester).onPressed, isNull);
+        expect((await summary(tester)).onPressed, isNull);
         expect(storage.writes, 0);
         await tester.scrollUntilVisible(
           find.text('Retry loading'),
@@ -56,7 +62,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('Retry loading'));
         await tester.pumpAndSettle();
-        expect(summary(tester).onPressed, isNull);
+        expect((await summary(tester)).onPressed, isNull);
         expect(storage.value, original);
         expect(storage.writes, 0);
         storage.failRead = false;
@@ -65,7 +71,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('Unable to load transactions'), findsNothing);
         expect(find.byType(BalanceCard), findsOneWidget);
-        expect(summary(tester).onPressed, isNotNull);
+        expect((await summary(tester)).onPressed, isNotNull);
         expect(storage.value, fixtures.encode([fixtures.old]));
         expect(storage.writes, 0);
         expect(tester.takeException(), isNull);
@@ -82,11 +88,11 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(summary(tester).onPressed, isNull);
+      expect((await summary(tester)).onPressed, isNull);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       storage.ready.complete('[]');
       await tester.pumpAndSettle();
-      expect(summary(tester).onPressed, isNotNull);
+      expect((await summary(tester)).onPressed, isNotNull);
       expect(storage.writes, 0);
     },
   );
